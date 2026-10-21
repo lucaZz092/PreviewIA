@@ -1,380 +1,74 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { computeProductivityMetrics } from '../utils/analytics';
-import {
-  TrendingUp,
-  AlertTriangle,
-  Bot,
-  CheckCircle2,
-  Clock,
-  ShieldCheck,
-  Zap,
-  ArrowUpRight,
-  Sparkles,
-} from 'lucide-react';
+import { calculateUrgency } from '../utils/analytics';
+import { STATUS_DOT, STATUS_LABEL, formatDate } from './status';
 
 interface DashboardViewProps {
   onOpenTaskModal: (taskId: string) => void;
-  onOpenNewTask: () => void;
-  onOpenAgentSquad: () => void;
-  onOpenAuditLog: () => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({
-  onOpenTaskModal,
-  onOpenNewTask,
-  onOpenAgentSquad,
-  onOpenAuditLog,
-}) => {
-  const { tasks: allTasks, teamMembers, auditLogs, setActiveView, selectedProjectId, selectedGroupId } = useApp();
+export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenTaskModal }) => {
+  const { tasks: allTasks, teamMembers, setActiveView, selectedProjectId, selectedGroupId } = useApp();
   const tasks = allTasks.filter(task => (!selectedProjectId || task.projectId === selectedProjectId) && (!selectedGroupId || task.projectGroupId === selectedGroupId));
 
-  const metrics = computeProductivityMetrics(
-    tasks.map(t => {
-      const member = teamMembers.find(m => m.id === t.assignedToId);
-      return {
-        ...t,
-        assignedTo: {
-          id: t.assignedToId,
-          name: member?.name || 'Membro',
-          avatar: member?.avatar,
-          isAI: Boolean(member?.isAI),
-          role: member?.role || 'Executor',
-        },
-      };
-    })
-  );
+  const open = tasks.filter(t => t.status !== 'completed');
+  const completed = tasks.length - open.length;
+  const overdue = open.filter(t => calculateUrgency(t.dueDate, t.status) === 'OVERDUE').length;
+  const upcoming = [...open].sort((a, b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 6);
 
-  const criticalAndOverdue = tasks.filter(t => {
-    const due = new Date(`${t.dueDate}T23:59:59`).getTime();
-    const now = Date.now();
-    const diffHours = (due - now) / (1000 * 60 * 60);
-    return t.status !== 'completed' && diffHours <= 48;
-  });
-
-  const aiAgents = teamMembers.filter(m => m.isAI);
-  const humanMembers = teamMembers.filter(m => !m.isAI);
+  const stats = [
+    { label: 'Em aberto', value: open.length },
+    { label: 'Concluídas', value: tasks.length ? `${Math.round((completed / tasks.length) * 100)}%` : '—' },
+    { label: 'Atrasadas', value: overdue, alert: overdue > 0 },
+  ];
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Header & Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">
-            Seu trabalho, em perspectiva
-          </h1>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-            <span>OmniTask Enterprise</span>
-            <span aria-hidden="true">·</span>
-            <span>Visão geral da equipe</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-emerald-600 font-mono">Projetos, pessoas e entregas</span>
+    <div className="px-5 md:px-10 py-8 max-w-6xl mx-auto space-y-12">
+      <dl className="grid grid-cols-3 gap-6 max-w-xl">
+        {stats.map(stat => (
+          <div key={stat.label}>
+            <dt className="text-[13px] text-neutral-500">{stat.label}</dt>
+            <dd className={`mt-1 text-3xl font-semibold tracking-tight tabular-nums ${stat.alert ? 'text-red-600' : 'text-neutral-900'}`}>
+              {stat.value}
+            </dd>
           </div>
-        </div>
+        ))}
+      </dl>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onOpenAgentSquad}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300"
-          >
-            <Bot className="w-4 h-4 text-purple-600" />
-            <span>Ver Squad de IA</span>
-          </button>
-          <button
-            onClick={onOpenNewTask}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
-          >
-            <Zap className="w-4 h-4" />
-            <span>Nova tarefa</span>
+      <section>
+        <div className="flex items-baseline justify-between mb-2">
+          <h2 className="text-sm font-medium text-neutral-900">Próximas entregas</h2>
+          <button onClick={() => setActiveView('list')} className="text-[13px] text-neutral-500 hover:text-neutral-900">
+            Ver todas
           </button>
         </div>
-      </div>
 
-      {/* Critical SLA Notification Alert Banner */}
-      {criticalAndOverdue.length > 0 && (
-        <div className="bg-amber-50/40 border border-amber-200/60 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-bold text-amber-800">
-                Alerta de Prazos Críticos: {criticalAndOverdue.length} demandas necessitam atenção
-                imediata
-              </p>
-              <p className="text-xs text-amber-700/80 mt-0.5">
-                Existem tarefas vencidas ou com entrega programada para as próximas 48 horas. Você
-                pode delegar subtarefas para os agentes de IA acelerarem a entrega.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setActiveView('kanban')}
-            className="text-xs font-semibold text-amber-800 hover:text-slate-900 bg-amber-100/60 hover:bg-amber-200/80 px-3 py-1.5 rounded-lg border border-amber-700/50 transition-colors whitespace-nowrap shrink-0"
-          >
-            Ver no Quadro
-          </button>
-        </div>
-      )}
-
-      {/* KPI Stat Cards Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {/* Taxa de Conclusão */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4.5">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Taxa de Conclusão</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono tabular-nums text-slate-800">
-              {metrics.overallCompletionRate}%
-            </span>
-            <span className="text-[11px] text-slate-500 font-mono">
-              {metrics.completedTasks}/{metrics.totalTasks}
-            </span>
-          </div>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${metrics.overallCompletionRate}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Demandas em Execução */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4.5">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Em Andamento</span>
-            <Clock className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono tabular-nums text-slate-800">
-              {metrics.inProgressTasks + metrics.aiExecutingTasks}
-            </span>
-            <span className="text-[11px] text-slate-500 font-mono">demandas</span>
-          </div>
-          <p className="text-[11px] text-slate-500 mt-2">
-            {metrics.aiExecutingTasks} tarefas com IA autônoma
-          </p>
-        </div>
-
-        {/* Participação de Agentes IA */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4.5">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Carga dos Agentes IA</span>
-            <Bot className="w-4 h-4 text-purple-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono tabular-nums text-purple-700">
-              {metrics.aiTaskSharePercentage}%
-            </span>
-            <span className="text-[11px] text-slate-500 font-mono">das tarefas</span>
-          </div>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div
-              className="bg-purple-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${metrics.aiTaskSharePercentage}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Prazos Críticos / Atrasados */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4.5">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">SLAs em Risco</span>
-            <AlertTriangle className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono tabular-nums text-rose-600">
-              {metrics.overdueTasks + metrics.criticalTasks}
-            </span>
-            <span className="text-[11px] text-slate-500 font-mono">urgentes</span>
-          </div>
-          <p className="text-[11px] text-slate-500 mt-2">
-            {metrics.overdueTasks} expirados · {metrics.criticalTasks} vencem hoje
-          </p>
-        </div>
-
-        {/* Eficiência & Horas Poupadas */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4.5">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Horas Otimizadas</span>
-            <TrendingUp className="w-4 h-4 text-teal-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono tabular-nums text-teal-700">
-              +{metrics.hoursEfficiencyDelta}h
-            </span>
-            <span className="text-[11px] text-slate-500 font-mono">economia</span>
-          </div>
-          <p className="text-[11px] text-slate-500 mt-2">
-            Estimado: {metrics.totalEstimatedHours}h · Real: {metrics.totalActualHours}h
-          </p>
-        </div>
-      </div>
-
-      {/* Main Grid: Workload Distribution & Critical Delivery Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Urgent Deliveries (2 cols) */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-600" />
-              <h2 className="text-sm font-bold text-slate-800">
-                Entregas da equipe
-              </h2>
-            </div>
-            <button
-              onClick={() => setActiveView('list')}
-              className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium"
-            >
-              <span>Ver todas</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="divide-y divide-slate-200">
-            {tasks.slice(0, 5).map(task => {
+        {upcoming.length === 0 ? (
+          <p className="py-10 text-center text-sm text-neutral-500 border-t border-neutral-100">Tudo em dia.</p>
+        ) : (
+          <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+            {upcoming.map(task => {
               const member = teamMembers.find(m => m.id === task.assignedToId);
-              const isUrgent = task.priority === 'urgent' || task.priority === 'high';
-              const completedSubs = task.subtasks.filter(s => s.completed).length;
-
+              const isOverdue = calculateUrgency(task.dueDate, task.status) === 'OVERDUE';
               return (
-                <div
-                  key={task.id}
-                  onClick={() => onOpenTaskModal(task.id)}
-                  className="py-3 px-2 hover:bg-slate-100/50 rounded-lg cursor-pointer transition-colors flex items-center justify-between gap-4"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold text-blue-600">
-                        {task.code}
-                      </span>
-                      {isUrgent && (
-                        <span className="text-[10px] text-rose-600 font-medium">Urgente</span>
-                      )}
-                      {task.isEncrypted && (
-                        <span className="text-[10px] text-amber-600 font-mono">E2EE</span>
-                      )}
-                      {task.githubIssueNumber && (
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          GH #{task.githubIssueNumber}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs font-medium text-slate-800 truncate mt-1">
-                      {task.title}
-                    </p>
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-1">
-                      <span>Prazo: {task.dueDate}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>
-                        Subtarefas: {completedSubs}/{task.subtasks.length}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Assignee & Status Badge */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <p className="text-xs font-medium text-slate-600">
-                        {member?.name || 'Não atribuído'}
-                      </p>
-                      <p className="text-[10px] text-slate-500 font-mono">
-                        {member?.isAI ? 'Agente de IA' : 'Colaborador'}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`text-xs font-medium px-2.5 py-1 rounded-md capitalize ${
-                        task.status === 'completed'
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60'
-                          : task.status === 'ai_executing'
-                          ? 'bg-purple-50 text-purple-700 border border-purple-200/60 '
-                          : task.status === 'in_progress'
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200/60'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      {{ backlog: 'Backlog', todo: 'A fazer', in_progress: 'Em andamento', ai_executing: 'Execução IA', review: 'Em revisão', completed: 'Concluído' }[task.status]}
+                <li key={task.id}>
+                  <button
+                    onClick={() => onOpenTaskModal(task.id)}
+                    className="w-full flex items-center gap-4 py-3 px-2 -mx-2 rounded-md text-left hover:bg-neutral-50 transition-colors"
+                  >
+                    <span title={STATUS_LABEL[task.status]} className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[task.status]}`} />
+                    <span className="flex-1 min-w-0 truncate text-sm text-neutral-900">{task.title}</span>
+                    <span className="hidden sm:block w-36 truncate text-[13px] text-neutral-500">{member?.name || '—'}</span>
+                    <span className={`w-16 text-right text-[13px] tabular-nums ${isOverdue ? 'text-red-600' : 'text-neutral-500'}`}>
+                      {formatDate(task.dueDate)}
                     </span>
-                  </div>
-                </div>
+                  </button>
+                </li>
               );
             })}
-          </div>
-        </div>
-
-        {/* Right Column: AI Agents Squad & Workload Balance */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-purple-600" />
-              <h2 className="text-sm font-bold text-slate-800">Squad de Agentes de IA</h2>
-            </div>
-            <button
-              onClick={onOpenAgentSquad}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Gerenciar
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {aiAgents.map(agent => {
-              const workload = metrics.agentWorkload[agent.id] || { assigned: 0, completed: 0 };
-              return (
-                <div
-                  key={agent.id}
-                  className="p-3 bg-slate-50/60 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {agent.avatar ? (
-                      <img
-                        src={agent.avatar}
-                        alt={agent.name}
-                        className="w-9 h-9 rounded-lg object-cover border border-purple-500/30"
-                      />
-                    ) : (
-                      <div className="w-9 h-9 rounded-lg bg-purple-50 border border-purple-700/50 flex items-center justify-center text-purple-700">
-                        <Bot className="w-4 h-4" />
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-slate-800 truncate">{agent.name}</p>
-                        <span className="text-[10px] text-emerald-600 font-mono">Disponível</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 truncate">{agent.role}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Demandas Atribuídas:</span>
-                    <span className="font-mono text-slate-800 font-semibold tabular-nums">
-                      {workload.assigned} ({workload.completed} concluídas)
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Quick Cryptographic Ledger Link */}
-          <div className="pt-2 border-t border-slate-200">
-            <div className="p-3 bg-slate-50/40 border border-slate-200 rounded-lg flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span className="text-xs font-medium text-slate-600">Histórico de atividades</span>
-              </div>
-              <button
-                onClick={onOpenAuditLog}
-                className="text-xs text-blue-600 hover:text-blue-700 font-mono"
-              >
-                {auditLogs.length} logs
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+          </ul>
+        )}
+      </section>
     </div>
   );
 };

@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import {
-  Bot,
-  Zap,
-  Shield,
-  Code2,
-  Database,
-  CheckCircle,
-  Clock,
-  Sparkles,
-  Terminal,
-} from 'lucide-react';
+import { Bot } from 'lucide-react';
+import { STATUS_DOT, STATUS_LABEL, formatDate } from './status';
 
 interface AIAgentsSquadViewProps {
   onOpenNewTaskWithAgent: (agentId: string) => void;
@@ -21,7 +12,7 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
   onOpenNewTaskWithAgent,
   onOpenTaskModal,
 }) => {
-  const { teamMembers, tasks, checkPermission, executeAIAgentOnTask } = useApp();
+  const { teamMembers, tasks, checkPermission } = useApp();
   const [testPrompt, setTestPrompt] = useState('');
   const [selectedAgentId, setSelectedAgentId] = useState<string>('agent-sentinel');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -62,187 +53,101 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2.5">
-            <Bot className="w-6 h-6 text-purple-600" />
-            <span>Squad Corporativo de Agentes de IA</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Orquestração e delegação de demandas corporativas para agentes autônomos supervisionados.
-          </p>
-        </div>
+    <div className="px-5 md:px-10 py-8 max-w-6xl mx-auto space-y-10">
+      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Agentes</h1>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-emerald-600 bg-emerald-50/60 border border-emerald-200/60 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Gemini 3.8 Flash Ativo</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Agents Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {aiAgents.map(agent => {
           const isSelected = selectedAgentId === agent.id;
-          const assignedCount = tasks.filter(t => t.assignedToId === agent.id).length;
-          const completedCount = tasks.filter(t => t.assignedToId === agent.id && t.status === 'completed').length;
+          const assignedCount = tasks.filter(t => t.assignedToId === agent.id && t.status !== 'completed').length;
 
           return (
-            <div
+            <button
               key={agent.id}
               onClick={() => setSelectedAgentId(agent.id)}
-              className={`p-4 bg-white border rounded-xl cursor-pointer transition-all ${
-                isSelected
-                  ? 'border-purple-500 bg-purple-50/20 shadow-lg shadow-purple-500/10'
-                  : 'border-slate-200 hover:border-slate-300'
+              className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
+                isSelected ? 'border-neutral-900' : 'border-neutral-200 hover:border-neutral-300'
               }`}
             >
-              <div className="flex items-center gap-3">
-                {agent.avatar ? (
-                  <img
-                    src={agent.avatar}
-                    alt={agent.name}
-                    className="w-11 h-11 rounded-lg object-cover border border-purple-500/40"
-                  />
-                ) : (
-                  <div className="w-11 h-11 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700">
-                    <Bot className="w-5 h-5" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-xs font-bold text-slate-800 truncate">{agent.name}</h3>
-                  <p className="text-[11px] text-slate-500 truncate">{agent.role}</p>
-                </div>
-              </div>
-
-              {/* Badges / Capabilities */}
-              <div className="mt-3 flex flex-wrap gap-1">
-                {agent.capabilities?.slice(0, 2).map((cap, i) => (
-                  <span
-                    key={i}
-                    className="text-[10px] bg-slate-50 border border-slate-200 text-slate-500 px-2 py-0.5 rounded"
-                  >
-                    {cap}
-                  </span>
-                ))}
-              </div>
-
-              {/* Progress */}
-              <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
-                <span>Demandas:</span>
-                <span className="font-mono text-slate-800 tabular-nums">
-                  {assignedCount} ({completedCount} prontas)
+              {agent.avatar ? (
+                <img src={agent.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+              ) : (
+                <span className="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500">
+                  <Bot className="w-4 h-4" />
                 </span>
-              </div>
-            </div>
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-medium text-neutral-900 truncate">{agent.name}</span>
+                <span className="block text-xs text-neutral-500 truncate">
+                  {assignedCount} {assignedCount === 1 ? 'tarefa aberta' : 'tarefas abertas'}
+                </span>
+              </span>
+            </button>
           );
         })}
       </div>
 
-      {/* Selected Agent Workspace & Live Terminal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Tasks assigned to this agent */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800">
-              Demandas com {selectedAgent.name}
-            </h3>
-            <button
-              onClick={() => onOpenNewTaskWithAgent(selectedAgent.id)}
-              className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-semibold"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Delegar Nova</span>
-            </button>
-          </div>
-
-          <div className="space-y-2 max-h-[380px] overflow-y-auto">
-            {agentTasks.map(t => (
-              <div
-                key={t.id}
-                onClick={() => onOpenTaskModal(t.id)}
-                className="p-3 bg-slate-50 border border-slate-200 hover:border-purple-500/40 rounded-lg cursor-pointer transition-colors"
-              >
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="font-mono text-blue-600 font-semibold">{t.code}</span>
-                  <span className="capitalize text-slate-500">{t.status.replace('_', ' ')}</span>
-                </div>
-                <p className="text-xs font-semibold text-slate-800 truncate">{t.title}</p>
-                <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
-                  <span>Prazo: {t.dueDate}</span>
-                  <span className="font-mono">{t.subtasks.filter(s => s.completed).length}/{t.subtasks.length} subs</span>
-                </div>
-              </div>
-            ))}
-
-            {agentTasks.length === 0 && (
-              <div className="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg">
-                Nenhuma tarefa ativa atribuída a este agente.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Autonomous Prompt Console & Execution Output */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-purple-600" />
-              <h3 className="text-sm font-bold text-slate-800">
-                Console de Execução Autônoma ({selectedAgent.name})
-              </h3>
+      {selectedAgent && (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+          <section className="lg:col-span-2">
+            <div className="flex items-baseline justify-between mb-2">
+              <h2 className="text-sm font-medium text-neutral-900">Tarefas</h2>
+              {checkPermission('TASK_CREATE') && (
+                <button
+                  onClick={() => onOpenNewTaskWithAgent(selectedAgent.id)}
+                  className="text-[13px] text-neutral-500 hover:text-neutral-900"
+                >
+                  Delegar
+                </button>
+              )}
             </div>
-            <span className="text-[11px] text-slate-500 font-mono">
-              Modelo: gemini-3.8-flash
-            </span>
-          </div>
+            {agentTasks.length === 0 ? (
+              <p className="py-8 text-center text-[13px] text-neutral-500 border-t border-neutral-100">Nenhuma tarefa.</p>
+            ) : (
+              <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+                {agentTasks.map(t => (
+                  <li key={t.id}>
+                    <button
+                      onClick={() => onOpenTaskModal(t.id)}
+                      className="w-full flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-md text-left hover:bg-neutral-50 transition-colors"
+                    >
+                      <span title={STATUS_LABEL[t.status]} className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[t.status]}`} />
+                      <span className="flex-1 min-w-0 truncate text-[13px] text-neutral-900">{t.title}</span>
+                      <span className="text-[13px] text-neutral-500 tabular-nums">{formatDate(t.dueDate)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-slate-600">
-              Instrução ou Demanda Imediata para o Agente:
-            </label>
+          <section className="lg:col-span-3">
+            <h2 className="text-sm font-medium text-neutral-900 mb-2">Pedir ao {selectedAgent.name.split(' ')[0]}</h2>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={testPrompt}
                 onChange={(e) => setTestPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleRunAutonomousPrompt()}
-                placeholder={`Ex.: Executar verificação de segurança no cluster ou analisar conformidade...`}
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                placeholder="Descreva o que precisa"
+                className="flex-1 h-9 px-3 rounded-md border border-neutral-200 text-[13px] text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400"
               />
               <button
                 onClick={handleRunAutonomousPrompt}
                 disabled={isProcessing || !testPrompt.trim()}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                className="h-9 px-4 rounded-md bg-neutral-900 hover:bg-neutral-700 disabled:opacity-40 text-white text-[13px] font-medium transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{isProcessing ? 'Processando...' : 'Executar'}</span>
+                {isProcessing ? 'Executando…' : 'Executar'}
               </button>
             </div>
-          </div>
-
-          {/* Terminal Output */}
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-xs text-slate-600 min-h-[220px] max-h-[320px] overflow-y-auto">
-            <div className="text-slate-500 border-b border-slate-200 pb-2 mb-3 flex items-center justify-between">
-              <span>// Output de Execução e Logs do Agente</span>
-              <span className="text-[10px] text-emerald-600">STATUS: PRONTO</span>
-            </div>
-
-            {liveLog ? (
-              <pre className="whitespace-pre-wrap font-sans text-xs text-slate-800 leading-relaxed">
+            {liveLog && (
+              <pre className="mt-4 p-4 rounded-lg bg-neutral-50 whitespace-pre-wrap font-sans text-[13px] text-neutral-800 leading-relaxed max-h-[360px] overflow-y-auto">
                 {liveLog}
               </pre>
-            ) : (
-              <div className="text-slate-500 italic">
-                Aguardando comando. Digite uma instrução acima e clique em "Executar" para ver a entrega técnica do agente de IA em tempo real.
-              </div>
             )}
-          </div>
+          </section>
         </div>
-      </div>
+      )}
     </div>
   );
 };

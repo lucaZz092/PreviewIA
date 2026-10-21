@@ -25,7 +25,7 @@ import { WorkspaceHeader } from './components/WorkspaceHeader';
 import { TaskStatus } from './types';
 
 function MainApp() {
-  const { activeView, setActiveView } = useApp();
+  const { activeView } = useApp();
 
   // Modals state
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -64,7 +64,7 @@ function MainApp() {
   };
 
   return (
-    <div className="h-dvh overflow-hidden bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
+    <div className="h-dvh overflow-hidden bg-white text-neutral-900 flex flex-col font-sans antialiased">
       {/* Top Bar Navigation Contract */}
       <TopBar
         onOpenNewTask={() => handleOpenNewTask()}
@@ -81,20 +81,13 @@ function MainApp() {
         <Sidebar
           onOpenNewGroup={handleOpenNewGroup}
           onOpenNewProject={handleOpenNewProject}
-          onOpenGitHubModal={() => setShowGitHubModal(true)}
-          onOpenPrivacyModal={() => setShowPrivacyModal(true)}
         />
 
         {/* Content Viewport */}
-        <main className="flex-1 min-w-0 overflow-y-auto bg-white">
+        <main className="flex-1 min-w-0 overflow-y-auto pb-16">
           <WorkspaceHeader />
           {activeView === 'dashboard' && (
-            <DashboardView
-              onOpenTaskModal={(id) => setSelectedTaskId(id)}
-              onOpenNewTask={() => handleOpenNewTask()}
-              onOpenAgentSquad={() => setActiveView('agents')}
-              onOpenAuditLog={() => setActiveView('audit')}
-            />
+            <DashboardView onOpenTaskModal={(id) => setSelectedTaskId(id)} />
           )}
 
           {activeView === 'kanban' && (
@@ -105,10 +98,7 @@ function MainApp() {
           )}
 
           {activeView === 'list' && (
-            <ListView
-              onOpenTaskModal={(id) => setSelectedTaskId(id)}
-              onOpenNewTask={() => handleOpenNewTask()}
-            />
+            <ListView onOpenTaskModal={(id) => setSelectedTaskId(id)} />
           )}
 
           {activeView === 'gantt' && (
@@ -131,10 +121,6 @@ function MainApp() {
         <TaskModal
           taskId={selectedTaskId}
           onClose={() => setSelectedTaskId(null)}
-          onOpenGitHubModal={() => {
-            setSelectedTaskId(null);
-            setShowGitHubModal(true);
-          }}
         />
       )}
 

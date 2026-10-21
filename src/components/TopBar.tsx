@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import {
-  Bell,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  Shield,
-  Plus,
-  FileSpreadsheet,
-  Github,
-  Lock,
-  ChevronDown,
-  Menu,
-} from 'lucide-react';
+import { Bell, Plus, Menu, Check } from 'lucide-react';
 import { Role, ROLE_LABELS } from '../utils/rbac';
 
 interface TopBarProps {
@@ -23,6 +11,8 @@ interface TopBarProps {
   onOpenRBACModal: () => void;
   onOpenBackupModal: () => void;
 }
+
+const roles: Role[] = ['ADMIN', 'MANAGER', 'AI_OPERATOR', 'MEMBER', 'AUDITOR', 'GUEST'];
 
 export const TopBar: React.FC<TopBarProps> = ({
   onOpenNewTask,
@@ -40,30 +30,33 @@ export const TopBar: React.FC<TopBarProps> = ({
     clearAllNotifications,
     checkPermission,
     teamMembers,
-    activeView,
     setActiveView,
-    isLedgerValid,
     mobileMenuOpen,
     setMobileMenuOpen,
   } = useApp();
 
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [openMenu, setOpenMenu] = useState<'notifications' | 'account' | null>(null);
+  const toggle = (menu: 'notifications' | 'account') => setOpenMenu(openMenu === menu ? null : menu);
 
   const unreadCount = notifications.filter(n => !n.read).length;
-  const criticalCount = notifications.filter(n => n.type === 'overdue' || n.type === 'due_24h').length;
   const adminMember = teamMembers.find(m => m.id === 'usr-lucas');
+  const initials = (adminMember?.name || 'U').split(' ').map(part => part[0]).slice(0, 2).join('');
 
-  const roles: Role[] = ['ADMIN', 'MANAGER', 'AI_OPERATOR', 'MEMBER', 'AUDITOR', 'GUEST'];
+  const accountActions = [
+    { label: 'Exportar relatório', onClick: onOpenReportModal },
+    { label: 'Integração GitHub', onClick: onOpenGitHubModal },
+    { label: 'Backup e criptografia', onClick: onOpenBackupModal },
+    { label: 'Privacidade', onClick: onOpenPrivacyModal },
+    { label: 'Permissões', onClick: onOpenRBACModal },
+  ];
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-white/95 backdrop-blur border-b border-slate-200">
-      {/* Zone 1: Single text element wordmark + mobile hamburger toggle */}
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 px-4 sm:px-5 bg-white border-b border-neutral-200">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
-          aria-label="Abrir menu de navegação lateral"
+          className="md:hidden -ml-1 p-1.5 text-neutral-500 hover:text-neutral-900 rounded-md"
+          aria-label="Abrir menu"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -73,117 +66,51 @@ export const TopBar: React.FC<TopBarProps> = ({
             e.preventDefault();
             setActiveView('dashboard');
           }}
-          className="text-base sm:text-lg font-bold tracking-tight text-slate-800 hover:text-blue-600 transition-colors whitespace-nowrap shrink-0 flex items-center gap-2.5"
+          className="text-[15px] font-semibold tracking-tight text-neutral-900"
         >
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-            <span className="font-mono font-extrabold text-xs sm:text-sm">OT</span>
-          </div>
-          <span className="hidden sm:inline">OmniTask <span className="font-normal text-slate-500">work management</span></span>
-          <span className="sm:hidden">OmniTask</span>
+          OmniTask
         </a>
       </div>
 
-      {/* Zone 3: Actions, Notifications, Role Switcher, Primary Button */}
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {/* GitHub Quick Sync */}
-        <button
-          onClick={onOpenGitHubModal}
-          title="Integração GitHub Enterprise"
-          aria-label="Integração GitHub Enterprise"
-          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-        >
-          <Github className="w-4 h-4" />
-        </button>
-
-        {/* Cloud Backup / E2EE Key */}
-        <button
-          onClick={onOpenBackupModal}
-          title="Backups em Nuvem & Criptografia E2EE"
-          aria-label="Backups em Nuvem & Criptografia E2EE"
-          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-        >
-          <Lock className="w-4 h-4" />
-        </button>
-
-        {/* Privacy & LGPD */}
-        <button
-          onClick={onOpenPrivacyModal}
-          title="Portal de Privacidade LGPD & GDPR"
-          aria-label="Portal de Privacidade LGPD & GDPR"
-          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-        >
-          <Shield className="w-4 h-4" />
-        </button>
-
-        {/* Notification Bell Dropdown */}
+      <div className="flex items-center gap-1">
         <div className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            aria-label="Notificações de prazos críticos"
-            className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+            onClick={() => toggle('notifications')}
+            aria-label="Notificações"
+            className="relative p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors"
           >
-            <Bell className="w-4 h-4" />
-            {criticalCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full tabular-nums">
-                {criticalCount}
-              </span>
+            <Bell className="w-[18px] h-[18px]" strokeWidth={1.75} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
             )}
           </button>
 
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-800">Notificações Automáticas</span>
-                  {unreadCount > 0 && (
-                    <span className="text-[11px] text-blue-600 font-mono tabular-nums">
-                      {unreadCount} não lidas
-                    </span>
-                  )}
-                </div>
+          {openMenu === 'notifications' && (
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-neutral-200 rounded-lg shadow-lg z-50 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
+                <span className="text-sm font-medium text-neutral-900">Notificações</span>
                 {notifications.length > 0 && (
-                  <button
-                    onClick={clearAllNotifications}
-                    className="text-xs text-slate-500 hover:text-slate-900 transition-colors"
-                  >
-                    Limpar todas
+                  <button onClick={clearAllNotifications} className="text-xs text-neutral-500 hover:text-neutral-900">
+                    Limpar
                   </button>
                 )}
               </div>
-
-              <div className="max-h-80 overflow-y-auto divide-y divide-slate-200">
+              <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-500">
-                    Nenhuma notificação crítica no momento. Todas as entregas estão em conformidade.
-                  </div>
+                  <p className="p-6 text-center text-sm text-neutral-500">Nada por aqui.</p>
                 ) : (
                   notifications.map(n => (
-                    <div
+                    <button
                       key={n.id}
                       onClick={() => markNotificationRead(n.id)}
-                      className={`p-3.5 hover:bg-slate-100/60 transition-colors cursor-pointer ${
-                        !n.read ? 'bg-slate-100/30' : ''
-                      }`}
+                      className="w-full text-left flex gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors"
                     >
-                      <div className="flex items-start gap-2.5">
-                        {n.type === 'overdue' && (
-                          <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                        )}
-                        {n.type === 'due_24h' && (
-                          <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                        )}
-                        {n.type === 'ai_completed' && (
-                          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        )}
-                        {n.type === 'due_48h' && (
-                          <Clock className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-800 truncate">{n.title}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                        </div>
-                      </div>
-                    </div>
+                      <span className={`mt-1.5 w-1.5 h-1.5 shrink-0 rounded-full ${n.read ? 'bg-transparent' : 'bg-red-500'}`} />
+                      <span className="min-w-0">
+                        <span className="block text-sm text-neutral-900 truncate">{n.title}</span>
+                        <span className="block text-xs text-neutral-500 mt-0.5">{n.message}</span>
+                      </span>
+                    </button>
                   ))
                 )}
               </div>
@@ -191,80 +118,74 @@ export const TopBar: React.FC<TopBarProps> = ({
           )}
         </div>
 
-        {/* Role Switcher Matrix Trigger */}
-        <div className="relative">
-          <button
-            onClick={() => setShowRoleSelector(!showRoleSelector)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="truncate max-w-[80px] sm:max-w-[110px]">{ROLE_LABELS[currentRole].label}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-          </button>
-
-          {showRoleSelector && (
-            <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 p-2">
-              <div className="px-3 py-2 border-b border-slate-200 mb-1">
-                <p className="text-xs font-bold text-slate-800">Simular Perfil de Acesso (RBAC)</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Alterne papéis para verificar como as permissões afetam a interface.
-                </p>
-              </div>
-              <div className="space-y-1">
-                {roles.map(r => (
-                  <button
-                    key={r}
-                    onClick={() => {
-                      setCurrentRole(r);
-                      setShowRoleSelector(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                      currentRole === r
-                        ? 'bg-blue-100 text-blue-700 font-semibold border border-blue-200'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>{ROLE_LABELS[r].label}</span>
-                    {currentRole === r && <CheckCircle className="w-3.5 h-3.5 text-blue-600" />}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-200 px-2">
-                <button
-                  onClick={() => {
-                    setShowRoleSelector(false);
-                    onOpenRBACModal();
-                  }}
-                  className="w-full text-center text-[11px] text-blue-600 hover:text-blue-700 py-1"
-                >
-                  Configurar Matriz de Permissões
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Export Reports Button */}
-        <button
-          onClick={onOpenReportModal}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300 whitespace-nowrap shrink-0"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
-          <span>Exportar</span>
-        </button>
-
-        {/* Primary CTA: Nova Demanda */}
         {checkPermission('TASK_CREATE') && (
           <button
             onClick={onOpenNewTask}
-            aria-label="Nova Tarefa"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm whitespace-nowrap shrink-0"
+            aria-label="Nova tarefa"
+            className="ml-1 flex items-center gap-1.5 h-8 px-3 text-[13px] font-medium text-white bg-neutral-900 hover:bg-neutral-700 rounded-md transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Nova Tarefa</span>
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Nova tarefa</span>
           </button>
         )}
+
+        <div className="relative ml-2">
+          <button
+            onClick={() => toggle('account')}
+            aria-label="Conta e configurações"
+            className="relative w-8 h-8 rounded-full overflow-hidden bg-neutral-100 text-[11px] font-medium text-neutral-600 flex items-center justify-center ring-offset-2 hover:ring-2 hover:ring-neutral-200"
+          >
+            {initials}
+            {adminMember?.avatar && (
+              <img
+                src={adminMember.avatar}
+                alt=""
+                onError={event => { event.currentTarget.style.display = 'none'; }}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+          </button>
+
+          {openMenu === 'account' && (
+            <div className="absolute right-0 mt-2 w-60 bg-white border border-neutral-200 rounded-lg shadow-lg z-50 py-1.5 text-sm">
+              <div className="px-3 py-2">
+                <p className="font-medium text-neutral-900 truncate">{adminMember?.name}</p>
+                <p className="text-xs text-neutral-500">{ROLE_LABELS[currentRole].label}</p>
+              </div>
+              <div className="my-1.5 border-t border-neutral-100" />
+              {accountActions.map(action => (
+                <button
+                  key={action.label}
+                  onClick={() => {
+                    setOpenMenu(null);
+                    action.onClick();
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-neutral-700 hover:bg-neutral-50"
+                >
+                  {action.label}
+                </button>
+              ))}
+              <div className="my-1.5 border-t border-neutral-100" />
+              <p className="px-3 pt-1 pb-1 text-xs text-neutral-400">Visualizar como</p>
+              {roles.map(r => (
+                <button
+                  key={r}
+                  onClick={() => {
+                    setCurrentRole(r);
+                    setOpenMenu(null);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-neutral-700 hover:bg-neutral-50"
+                >
+                  <span>{ROLE_LABELS[r].label}</span>
+                  {currentRole === r && <Check className="w-3.5 h-3.5 text-neutral-900" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {openMenu && <div className="fixed inset-0 z-40" onClick={() => setOpenMenu(null)} />}
     </header>
   );
 };

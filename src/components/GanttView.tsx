@@ -1,111 +1,53 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, Clock, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
+import { STATUS_DOT, STATUS_LABEL, formatDate } from './status';
 
 interface GanttViewProps {
   onOpenTaskModal: (taskId: string) => void;
 }
 
 export const GanttView: React.FC<GanttViewProps> = ({ onOpenTaskModal }) => {
-  const { projects: allProjects, tasks, teamMembers, projectGroups, selectedProjectId, selectedGroupId } = useApp();
+  const { projects: allProjects, tasks, selectedProjectId, selectedGroupId } = useApp();
   const projects = allProjects.filter(project => (!selectedProjectId || project.id === selectedProjectId) && (!selectedGroupId || project.groupId === selectedGroupId));
 
-  // Timeline spans roughly October 2026 - November 2026
-  const timelineDays = [
-    '10/10', '10/12', '10/14', '10/16', '10/18', '10/20 (Hoje)', '10/22', '10/24', '10/26', '10/28', '10/30',
-    '11/05', '11/10', '11/15', '11/20', '11/30',
-  ];
-
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">Cronograma Executivo de Entregas & SLAs</h2>
-        <p className="text-xs text-slate-500 mt-1">
-          Acompanhamento visual de datas críticas, dependências de projetos e metas de sprint.
-        </p>
-      </div>
+    <div className="px-5 md:px-10 py-6 max-w-6xl mx-auto space-y-10">
+      {projects.map(proj => {
+        const projTasks = [...tasks.filter(t => t.projectId === proj.id)].sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+        const completedCount = projTasks.filter(t => t.status === 'completed').length;
+        const progressPct = projTasks.length > 0 ? Math.round((completedCount / projTasks.length) * 100) : 0;
 
-      {/* Projects Timeline Cards */}
-      <div className="space-y-6">
-        {projects.map(proj => {
-          const group = projectGroups.find(g => g.id === proj.groupId);
-          const projTasks = tasks.filter(t => t.projectId === proj.id);
-          const completedCount = projTasks.filter(t => t.status === 'completed').length;
-          const progressPct = projTasks.length > 0 ? Math.round((completedCount / projTasks.length) * 100) : 0;
-
-          return (
-            <div
-              key={proj.id}
-              className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm"
-            >
-              {/* Project Top Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50/60 px-2 py-0.5 rounded border border-blue-200/40">
-                    {proj.code}
-                  </span>
-                  <h3 className="text-sm font-bold text-slate-800">{proj.name}</h3>
-                  <span className="text-xs text-slate-500">· {group?.name}</span>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs font-mono tabular-nums text-slate-600">
-                  <span>Início: {proj.startDate}</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                  <span className="text-blue-600 font-semibold">Meta: {proj.targetDate}</span>
-                  <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-800">
-                    {progressPct}% concluído
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-200">
-                <div
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-
-              {/* Tasks List inside Project */}
-              <div className="space-y-2 mt-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  Entregas Mapeadas ({projTasks.length})
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {projTasks.map(t => {
-                    const member = teamMembers.find(m => m.id === t.assignedToId);
-                    const isCompleted = t.status === 'completed';
-
-                    return (
-                      <div
-                        key={t.id}
-                        onClick={() => onOpenTaskModal(t.id)}
-                        className={`p-3 bg-slate-50 border rounded-lg cursor-pointer transition-colors ${
-                          isCompleted
-                            ? 'border-emerald-200/40 opacity-75'
-                            : 'border-slate-200 hover:border-indigo-500/50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-[10px] mb-1">
-                          <span className="font-mono text-blue-600 font-bold">{t.code}</span>
-                          <span className="font-mono text-slate-500">{t.dueDate}</span>
-                        </div>
-                        <p className="text-xs font-medium text-slate-800 truncate">{t.title}</p>
-                        <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 pt-1 border-t border-slate-200">
-                          <span>{member?.name || 'Não atribuído'}</span>
-                          <span className="capitalize">{t.status.replace('_', ' ')}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+        return (
+          <section key={proj.id}>
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-sm font-medium text-neutral-900">{proj.name}</h2>
+              <span className="text-[13px] text-neutral-500 tabular-nums">
+                {formatDate(proj.startDate)} – {formatDate(proj.targetDate)} · {progressPct}%
+              </span>
             </div>
-          );
-        })}
-      </div>
+            <div className="mt-2.5 h-1 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-neutral-900 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+            </div>
+
+            <ul className="mt-3 divide-y divide-neutral-100">
+              {projTasks.map(t => (
+                <li key={t.id}>
+                  <button
+                    onClick={() => onOpenTaskModal(t.id)}
+                    className="w-full flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-md text-left hover:bg-neutral-50 transition-colors"
+                  >
+                    <span title={STATUS_LABEL[t.status]} className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[t.status]}`} />
+                    <span className={`flex-1 min-w-0 truncate text-[13px] ${t.status === 'completed' ? 'text-neutral-400' : 'text-neutral-900'}`}>
+                      {t.title}
+                    </span>
+                    <span className="text-[13px] text-neutral-500 tabular-nums">{formatDate(t.dueDate)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
     </div>
   );
 };
