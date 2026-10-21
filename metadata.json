@@ -1,0 +1,6 @@
+{
+  "name": "OmniTask Enterprise - Gestão de Projetos & Agentes de IA",
+  "description": "Plataforma corporativa de produtividade e gestão de demandas com delegação para agentes de IA autônomos, dashboards em tempo real, auditoria criptográfica, conformidade LGPD/GDPR e integração GitHub.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
