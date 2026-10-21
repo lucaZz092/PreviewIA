@@ -21,6 +21,7 @@ import { RBACModal } from './components/RBACModal';
 import { CloudBackupModal } from './components/CloudBackupModal';
 import { ReportModal } from './components/ReportModal';
 import { NewProjectModal } from './components/NewProjectModal';
+import { WorkspaceHeader } from './components/WorkspaceHeader';
 import { TaskStatus } from './types';
 
 function MainApp() {
@@ -63,7 +64,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased">
+    <div className="h-dvh overflow-hidden bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
       {/* Top Bar Navigation Contract */}
       <TopBar
         onOpenNewTask={() => handleOpenNewTask()}
@@ -75,7 +76,7 @@ function MainApp() {
       />
 
       {/* Main Workspace Frame */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 min-h-0 flex overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar
           onOpenNewGroup={handleOpenNewGroup}
@@ -85,7 +86,8 @@ function MainApp() {
         />
 
         {/* Content Viewport */}
-        <main className="flex-1 overflow-y-auto bg-slate-950">
+        <main className="flex-1 min-w-0 overflow-y-auto bg-white">
+          <WorkspaceHeader />
           {activeView === 'dashboard' && (
             <DashboardView
               onOpenTaskModal={(id) => setSelectedTaskId(id)}

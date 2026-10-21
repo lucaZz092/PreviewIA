@@ -80,16 +80,16 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-indigo-400" />
-            <h3 className="text-sm font-bold text-white">Criar Nova Demanda / Tarefa</h3>
+            <Plus className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-800">Criar Nova Demanda / Tarefa</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-900 rounded transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -98,8 +98,8 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-300">
-              Título da Tarefa <span className="text-rose-400">*</span>
+            <label className="text-xs font-semibold text-slate-600">
+              Título da Tarefa <span className="text-rose-600">*</span>
             </label>
             <input
               type="text"
@@ -107,28 +107,28 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Refatorar pipeline CI/CD com verificação de vulnerabilidades..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white mt-1 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300">Descrição e Objetivos</label>
+            <label className="text-xs font-semibold text-slate-600">Descrição e Objetivos</label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descreva o escopo, requisitos de negócio e critérios de homologação..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-300">Projeto Vinculado</label>
+              <label className="text-xs font-semibold text-slate-600">Projeto Vinculado</label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500"
               >
                 {projects.map(p => (
                   <option key={p.id} value={p.id}>
@@ -139,13 +139,13 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-slate-600">
                 Responsável (Humano ou Agente IA)
               </label>
               <select
                 value={assignedToId}
                 onChange={(e) => setAssignedToId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500"
               >
                 <optgroup label="Agentes de IA Corporativos">
                   {teamMembers
@@ -171,11 +171,11 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-300">Prioridade</label>
+              <label className="text-xs font-semibold text-slate-600">Prioridade</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500"
               >
                 <option value="low">Baixa</option>
                 <option value="medium">Média</option>
@@ -185,11 +185,11 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Status Inicial</label>
+              <label className="text-xs font-semibold text-slate-600">Status Inicial</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500"
               >
                 <option value="backlog">Backlog</option>
                 <option value="todo">A Fazer</option>
@@ -200,20 +200,20 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Prazo de Entrega</label>
+              <label className="text-xs font-semibold text-slate-600">Prazo de Entrega</label>
               <input
                 type="date"
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 mt-1 focus:outline-none focus:border-indigo-500 font-mono"
               />
             </div>
           </div>
 
           {/* Subtasks */}
           <div className="space-y-2 pt-2">
-            <label className="text-xs font-semibold text-slate-300">
+            <label className="text-xs font-semibold text-slate-600">
               Critérios de Aceitação & Subtarefas
             </label>
             <div className="flex gap-2">
@@ -228,12 +228,12 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
                   }
                 }}
                 placeholder="Adicionar critério ou entrega intermediária..."
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
               />
               <button
                 type="button"
                 onClick={handleAddSub}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg"
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-xs text-slate-800 rounded-lg"
               >
                 Adicionar
               </button>
@@ -243,13 +243,13 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
               {subtasks.map(s => (
                 <div
                   key={s.id}
-                  className="flex items-center justify-between p-2 bg-slate-950 rounded border border-slate-800 text-xs"
+                  className="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200 text-xs"
                 >
-                  <span className="text-slate-300">{s.title}</span>
+                  <span className="text-slate-600">{s.title}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveSub(s.id)}
-                    className="text-slate-500 hover:text-rose-400"
+                    className="text-slate-500 hover:text-rose-600"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -265,9 +265,9 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
                 type="checkbox"
                 checked={isEncrypted}
                 onChange={(e) => setIsEncrypted(e.target.checked)}
-                className="w-4 h-4 rounded text-amber-500 focus:ring-0 bg-slate-950 border-slate-700 cursor-pointer"
+                className="w-4 h-4 rounded text-amber-500 focus:ring-0 bg-slate-50 border-slate-300 cursor-pointer"
               />
-              <span className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5" />
                 <span>Ativar Proteção Criptográfica E2EE (AES-256)</span>
               </span>
@@ -278,23 +278,23 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
                 value={encryptedNote}
                 onChange={(e) => setEncryptedNote(e.target.value)}
                 placeholder="Insira dados confidenciais a serem cifrados de ponta a ponta..."
-                className="w-full bg-slate-950 border border-amber-800/60 rounded-lg p-2.5 text-xs text-slate-200 mt-2 focus:outline-none"
+                className="w-full bg-slate-50 border border-amber-200/60 rounded-lg p-2.5 text-xs text-slate-800 mt-2 focus:outline-none"
               />
             )}
           </div>
 
           {/* Footer Submit */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-md shadow-indigo-600/20"
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
             >
               Salvar Demanda
             </button>

@@ -7,7 +7,8 @@ interface GanttViewProps {
 }
 
 export const GanttView: React.FC<GanttViewProps> = ({ onOpenTaskModal }) => {
-  const { projects, tasks, teamMembers, projectGroups } = useApp();
+  const { projects: allProjects, tasks, teamMembers, projectGroups, selectedProjectId, selectedGroupId } = useApp();
+  const projects = allProjects.filter(project => (!selectedProjectId || project.id === selectedProjectId) && (!selectedGroupId || project.groupId === selectedGroupId));
 
   // Timeline spans roughly October 2026 - November 2026
   const timelineDays = [
@@ -19,8 +20,8 @@ export const GanttView: React.FC<GanttViewProps> = ({ onOpenTaskModal }) => {
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold text-white">Cronograma Executivo de Entregas & SLAs</h2>
-        <p className="text-xs text-slate-400 mt-1">
+        <h2 className="text-xl font-bold text-slate-800">Cronograma Executivo de Entregas & SLAs</h2>
+        <p className="text-xs text-slate-500 mt-1">
           Acompanhamento visual de datas críticas, dependências de projetos e metas de sprint.
         </p>
       </div>
@@ -36,39 +37,39 @@ export const GanttView: React.FC<GanttViewProps> = ({ onOpenTaskModal }) => {
           return (
             <div
               key={proj.id}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-sm"
+              className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm"
             >
               {/* Project Top Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">
+                  <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50/60 px-2 py-0.5 rounded border border-blue-200/40">
                     {proj.code}
                   </span>
-                  <h3 className="text-sm font-bold text-white">{proj.name}</h3>
-                  <span className="text-xs text-slate-400">· {group?.name}</span>
+                  <h3 className="text-sm font-bold text-slate-800">{proj.name}</h3>
+                  <span className="text-xs text-slate-500">· {group?.name}</span>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs font-mono tabular-nums text-slate-300">
+                <div className="flex items-center gap-4 text-xs font-mono tabular-nums text-slate-600">
                   <span>Início: {proj.startDate}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                  <span className="text-indigo-400 font-semibold">Meta: {proj.targetDate}</span>
-                  <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-200">
+                  <span className="text-blue-600 font-semibold">Meta: {proj.targetDate}</span>
+                  <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-800">
                     {progressPct}% concluído
                   </span>
                 </div>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-200">
                 <div
-                  className="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500"
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
 
               {/* Tasks List inside Project */}
               <div className="space-y-2 mt-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Entregas Mapeadas ({projTasks.length})
                 </p>
 
@@ -81,18 +82,18 @@ export const GanttView: React.FC<GanttViewProps> = ({ onOpenTaskModal }) => {
                       <div
                         key={t.id}
                         onClick={() => onOpenTaskModal(t.id)}
-                        className={`p-3 bg-slate-950 border rounded-lg cursor-pointer transition-colors ${
+                        className={`p-3 bg-slate-50 border rounded-lg cursor-pointer transition-colors ${
                           isCompleted
-                            ? 'border-emerald-800/40 opacity-75'
-                            : 'border-slate-800 hover:border-indigo-500/50'
+                            ? 'border-emerald-200/40 opacity-75'
+                            : 'border-slate-200 hover:border-indigo-500/50'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[10px] mb-1">
-                          <span className="font-mono text-indigo-400 font-bold">{t.code}</span>
-                          <span className="font-mono text-slate-400">{t.dueDate}</span>
+                          <span className="font-mono text-blue-600 font-bold">{t.code}</span>
+                          <span className="font-mono text-slate-500">{t.dueDate}</span>
                         </div>
-                        <p className="text-xs font-medium text-slate-200 truncate">{t.title}</p>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-900">
+                        <p className="text-xs font-medium text-slate-800 truncate">{t.title}</p>
+                        <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 pt-1 border-t border-slate-200">
                           <span>{member?.name || 'Não atribuído'}</span>
                           <span className="capitalize">{t.status.replace('_', ' ')}</span>
                         </div>

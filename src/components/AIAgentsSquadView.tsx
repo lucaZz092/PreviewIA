@@ -66,17 +66,17 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <Bot className="w-6 h-6 text-purple-400" />
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2.5">
+            <Bot className="w-6 h-6 text-purple-600" />
             <span>Squad Corporativo de Agentes de IA</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Orquestração e delegação de demandas corporativas para agentes autônomos supervisionados.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <span className="text-xs font-mono text-emerald-600 bg-emerald-50/60 border border-emerald-200/60 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Gemini 3.8 Flash Ativo</span>
           </span>
@@ -94,10 +94,10 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
             <div
               key={agent.id}
               onClick={() => setSelectedAgentId(agent.id)}
-              className={`p-4 bg-slate-900 border rounded-xl cursor-pointer transition-all ${
+              className={`p-4 bg-white border rounded-xl cursor-pointer transition-all ${
                 isSelected
-                  ? 'border-purple-500 bg-purple-950/20 shadow-lg shadow-purple-500/10'
-                  : 'border-slate-800 hover:border-slate-700'
+                  ? 'border-purple-500 bg-purple-50/20 shadow-lg shadow-purple-500/10'
+                  : 'border-slate-200 hover:border-slate-300'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -108,13 +108,13 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
                     className="w-11 h-11 rounded-lg object-cover border border-purple-500/40"
                   />
                 ) : (
-                  <div className="w-11 h-11 rounded-lg bg-purple-950 border border-purple-800 flex items-center justify-center text-purple-300">
+                  <div className="w-11 h-11 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700">
                     <Bot className="w-5 h-5" />
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-xs font-bold text-white truncate">{agent.name}</h3>
-                  <p className="text-[11px] text-slate-400 truncate">{agent.role}</p>
+                  <h3 className="text-xs font-bold text-slate-800 truncate">{agent.name}</h3>
+                  <p className="text-[11px] text-slate-500 truncate">{agent.role}</p>
                 </div>
               </div>
 
@@ -123,7 +123,7 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
                 {agent.capabilities?.slice(0, 2).map((cap, i) => (
                   <span
                     key={i}
-                    className="text-[10px] bg-slate-950 border border-slate-800 text-slate-400 px-2 py-0.5 rounded"
+                    className="text-[10px] bg-slate-50 border border-slate-200 text-slate-500 px-2 py-0.5 rounded"
                   >
                     {cap}
                   </span>
@@ -131,9 +131,9 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
               </div>
 
               {/* Progress */}
-              <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
                 <span>Demandas:</span>
-                <span className="font-mono text-slate-200 tabular-nums">
+                <span className="font-mono text-slate-800 tabular-nums">
                   {assignedCount} ({completedCount} prontas)
                 </span>
               </div>
@@ -145,14 +145,14 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
       {/* Selected Agent Workspace & Live Terminal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Tasks assigned to this agent */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">
+            <h3 className="text-sm font-bold text-slate-800">
               Demandas com {selectedAgent.name}
             </h3>
             <button
               onClick={() => onOpenNewTaskWithAgent(selectedAgent.id)}
-              className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 font-semibold"
+              className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-semibold"
             >
               <Zap className="w-3.5 h-3.5" />
               <span>Delegar Nova</span>
@@ -164,14 +164,14 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
               <div
                 key={t.id}
                 onClick={() => onOpenTaskModal(t.id)}
-                className="p-3 bg-slate-950 border border-slate-800 hover:border-purple-500/40 rounded-lg cursor-pointer transition-colors"
+                className="p-3 bg-slate-50 border border-slate-200 hover:border-purple-500/40 rounded-lg cursor-pointer transition-colors"
               >
                 <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="font-mono text-indigo-400 font-semibold">{t.code}</span>
-                  <span className="capitalize text-slate-400">{t.status.replace('_', ' ')}</span>
+                  <span className="font-mono text-blue-600 font-semibold">{t.code}</span>
+                  <span className="capitalize text-slate-500">{t.status.replace('_', ' ')}</span>
                 </div>
-                <p className="text-xs font-semibold text-slate-200 truncate">{t.title}</p>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2">
+                <p className="text-xs font-semibold text-slate-800 truncate">{t.title}</p>
+                <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
                   <span>Prazo: {t.dueDate}</span>
                   <span className="font-mono">{t.subtasks.filter(s => s.completed).length}/{t.subtasks.length} subs</span>
                 </div>
@@ -179,7 +179,7 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
             ))}
 
             {agentTasks.length === 0 && (
-              <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-lg">
+              <div className="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg">
                 Nenhuma tarefa ativa atribuída a este agente.
               </div>
             )}
@@ -187,21 +187,21 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
         </div>
 
         {/* Right: Autonomous Prompt Console & Execution Output */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-purple-400" />
-              <h3 className="text-sm font-bold text-white">
+              <Terminal className="w-4 h-4 text-purple-600" />
+              <h3 className="text-sm font-bold text-slate-800">
                 Console de Execução Autônoma ({selectedAgent.name})
               </h3>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-slate-500 font-mono">
               Modelo: gemini-3.8-flash
             </span>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-slate-300">
+            <label className="text-xs font-medium text-slate-600">
               Instrução ou Demanda Imediata para o Agente:
             </label>
             <div className="flex gap-2">
@@ -211,7 +211,7 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
                 onChange={(e) => setTestPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleRunAutonomousPrompt()}
                 placeholder={`Ex.: Executar verificação de segurança no cluster ou analisar conformidade...`}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500"
               />
               <button
                 onClick={handleRunAutonomousPrompt}
@@ -225,18 +225,18 @@ export const AIAgentsSquadView: React.FC<AIAgentsSquadViewProps> = ({
           </div>
 
           {/* Terminal Output */}
-          <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-300 min-h-[220px] max-h-[320px] overflow-y-auto">
-            <div className="text-slate-400 border-b border-slate-900 pb-2 mb-3 flex items-center justify-between">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-xs text-slate-600 min-h-[220px] max-h-[320px] overflow-y-auto">
+            <div className="text-slate-500 border-b border-slate-200 pb-2 mb-3 flex items-center justify-between">
               <span>// Output de Execução e Logs do Agente</span>
-              <span className="text-[10px] text-emerald-400">STATUS: PRONTO</span>
+              <span className="text-[10px] text-emerald-600">STATUS: PRONTO</span>
             </div>
 
             {liveLog ? (
-              <pre className="whitespace-pre-wrap font-sans text-xs text-slate-200 leading-relaxed">
+              <pre className="whitespace-pre-wrap font-sans text-xs text-slate-800 leading-relaxed">
                 {liveLog}
               </pre>
             ) : (
-              <div className="text-slate-400 italic">
+              <div className="text-slate-500 italic">
                 Aguardando comando. Digite uma instrução acima e clique em "Executar" para ver a entrega técnica do agente de IA em tempo real.
               </div>
             )}
